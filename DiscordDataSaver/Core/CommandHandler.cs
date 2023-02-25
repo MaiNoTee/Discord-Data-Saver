@@ -28,9 +28,9 @@ public static class CommandHandler
 	{
 		//TODO change guild commands to global on release!
 		//var guild = client!.GetGuild(224943652076650497); // my test channel
-		
+
 		var guild = client!.GetGuild(guildId);
-		
+
 		await guild.CreateApplicationCommandAsync(
 			new SlashCommandBuilder()
 				.WithName("reply")
@@ -76,19 +76,18 @@ public static class CommandHandler
 	{
 		double count;
 		IEnumerable<IMessage> messages;
-		
+
 		switch (msg.CommandName)
 		{
 			case "reply":
 				await msg.User.SendMessageAsync(msg.CommandName);
-				await msg.RespondAsync("Message sent");
+				await msg.RespondAsync("Message sent", ephemeral: true);
 				break;
 			case "delete":
 				count = (double)msg.Data.Options.First().Value;
 				try
 				{
-					messages = await msg.Channel.GetMessagesAsync(msg.Id, Direction.Before, (int)count)
-						.FlattenAsync();
+					messages = await msg.Channel.GetMessagesAsync(msg.Id, Direction.Before, (int)count).FlattenAsync();
 					await (msg.Channel as SocketTextChannel)!.DeleteMessagesAsync(messages);
 					await msg.RespondAsync($"Deleted {count} last messages", ephemeral: true);
 				}
@@ -101,8 +100,7 @@ public static class CommandHandler
 			case "save":
 				double option = (double)msg.Data.Options.First().Value;
 				count = (double)msg.Data.Options.Last().Value;
-				messages = await msg.Channel.GetMessagesAsync(msg.Id, Direction.Before, (int)count)
-					.FlattenAsync();
+				messages = await msg.Channel.GetMessagesAsync(msg.Id, Direction.Before, (int)count).FlattenAsync();
 				try
 				{
 					var customMessages = messages
