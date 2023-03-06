@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using DiscordDataSaver.Structures;
 
@@ -27,7 +26,6 @@ public static class CommandHandler
 	public static async Task ConnectSlashCommands(DiscordSocketClient? client, ulong guildId)
 	{
 		//TODO change guild commands to global on release!
-		//var guild = client!.GetGuild(224943652076650497); // my test channel
 
 		var guild = client!.GetGuild(guildId);
 
