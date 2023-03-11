@@ -10,25 +10,34 @@ namespace DiscordDataSaver.Core;
 
 public static class Program
 {
-	static DiscordSocketClient? _client;
+	public static DiscordSocketClient Client;
 	static ulong _testGuildId;
+	static string? _token = string.Empty;
 
 	public static async Task Main()
 	{
 		var config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.All };
-		_client = new DiscordSocketClient(config);
-		_client.MessageReceived += CommandHandler.MessageReceived;
-		_client.SlashCommandExecuted += CommandHandler.SlashCommandReceived;
+		Client = new DiscordSocketClient(config);
+		Client.MessageReceived += CommandHandler.MessageReceived;
+		Client.SlashCommandExecuted += CommandHandler.SlashCommandReceived;
+
+		Client.Log += Logger.Log;
+		Client.Ready += Ready;
+
+		try
+		{
+			_token = JsonConvert.DeserializeObject<ConfigStructure>(
+				await File.ReadAllTextAsync("Configs/config.json"))!.Token;
+			_testGuildId = Convert.ToUInt64(
+				JsonConvert.DeserializeObject<ConfigStructure>(
+					await File.ReadAllTextAsync("Configs/config.json"))!.Guild);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+		}
 		
-		_client.Log += Logger.Log;
-		_client.Ready += Ready;
-
-		string token = JsonConvert.DeserializeObject<ConfigStructure>(
-			await File.ReadAllTextAsync("config.json"))!.Token;
-		_testGuildId = Convert.ToUInt64(
-			JsonConvert.DeserializeObject<ConfigStructure>(
-				await File.ReadAllTextAsync("config.json"))!.Guild);
-
+		// Test adding user to db
 		await using (var db = new DatabaseContext())
 		{
 			User tom = new User { Name = "Tom", RegDate = DateTime.Now, Tag = 1212 };
@@ -39,14 +48,19 @@ public static class Program
 			Console.WriteLine("Внесены изменения в базу данных");
 		}
 
-		await _client.LoginAsync(TokenType.Bot, token);
-		await _client.StartAsync();
+		if (_token == "") Console.WriteLine("Bot token not set. Check config.json\nPress any key to continue");
+		else if (_testGuildId == 0) Console.WriteLine("Guild not set. Check config.json\nPress any key to continue");
+		else
+		{
+			await Client.LoginAsync(TokenType.Bot, _token);
+			await Client.StartAsync();
+		}
 
 		Console.ReadKey();
 	}
 
-	private static async Task Ready()
+	static async Task Ready()
 	{
-		await CommandHandler.ConnectSlashCommands(_client, _testGuildId);
+		await CommandHandler.ConnectSlashCommands(Client, _testGuildId);
 	}
 }

@@ -2,6 +2,6 @@
 
 struct ConfigStructure
 {
-    public string Token;
+    public string? Token;
     public string Guild;
 }
