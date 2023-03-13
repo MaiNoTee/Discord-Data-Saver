@@ -18,8 +18,8 @@ public static class Program
 	{
 		var config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.All };
 		Client = new DiscordSocketClient(config);
-		Client.MessageReceived += CommandHandler.MessageReceived;
-		Client.SlashCommandExecuted += CommandHandler.SlashCommandReceived;
+		Client.MessageReceived += MainCommandHandler.MessageReceived;
+		Client.SlashCommandExecuted += MainCommandHandler.SlashCommandReceived;
 
 		Client.Log += Logger.Log;
 		Client.Ready += Ready;
@@ -36,7 +36,7 @@ public static class Program
 		{
 			Console.WriteLine(e.Message);
 		}
-		
+
 		// Test adding user to db
 		await using (var db = new DatabaseContext())
 		{
@@ -48,8 +48,7 @@ public static class Program
 			Console.WriteLine("Внесены изменения в базу данных");
 		}
 
-		if (_token == "") Console.WriteLine("Bot token not set. Check config.json\nPress any key to continue");
-		else if (_testGuildId == 0) Console.WriteLine("Guild not set. Check config.json\nPress any key to continue");
+		if (_token == "" || _testGuildId == 0) Console.WriteLine("Set Token or GuildId. Check config.json");
 		else
 		{
 			await Client.LoginAsync(TokenType.Bot, _token);
@@ -61,6 +60,7 @@ public static class Program
 
 	static async Task Ready()
 	{
-		await CommandHandler.ConnectSlashCommands(Client, _testGuildId);
+		var commandHandler = new MainCommandHandler(Client, _testGuildId);
+		await commandHandler.ConnectSlashCommands();
 	}
 }
